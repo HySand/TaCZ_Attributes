@@ -203,4 +203,5 @@ public class ModernKineticGunScriptAPIMixin {
                 .map(index -> AttachmentDataUtils.getAmmoCountWithAttachment(itemStack, index.getGunData()))
                 .orElse(0);
     }
+
 }

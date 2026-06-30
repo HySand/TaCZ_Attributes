@@ -22,8 +22,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-import java.util.List;
-
 /**
  * クライアント側でリロード/ボルトアニメーションの速度を属性に追従させるイベントハンドラ。
  * <p>
@@ -35,14 +33,6 @@ import java.util.List;
  */
 @EventBusSubscriber(modid = Tacz_attributes.MODID, value = Dist.CLIENT)
 public class ReloadAnimationSpeedHandler {
-
-    /**
-     * デフォルトステートマシンでのMAIN_TRACKの位置。
-     * STATIC_TRACK_LINE = 0, MAIN_TRACK = trackIndex 4
-     * (BASE=0, BOLT_CAUGHT=1, SAFETY=2, ADS=3, MAIN=4)
-     */
-    private static final int STATIC_TRACK_LINE = 0;
-    private static final int MAIN_TRACK_INDEX = 4;
 
     /** アニメーション速度が変更中であることを示すフラグ */
     private static boolean wasSpeedModified = false;
@@ -60,18 +50,18 @@ public class ReloadAnimationSpeedHandler {
         if (isReloading) {
             double speed = getReloadSpeedModifier(player);
             if (speed != 1.0) {
-                applySpeedToMainTrack(player, (float) speed);
+                applySpeedToActiveTracks(player, (float) speed);
             }
             wasSpeedModified = true;
         } else if (isBolting) {
             double speed = getBoltSpeedModifier(player);
             if (speed != 1.0) {
-                applySpeedToMainTrack(player, (float) speed);
+                applySpeedToActiveTracks(player, (float) speed);
             }
             wasSpeedModified = true;
         } else if (wasSpeedModified) {
             // リロード/ボルト終了時に速度倍率をリセット
-            applySpeedToMainTrack(player, 1.0f);
+            applySpeedToActiveTracks(player, 1.0f);
             wasSpeedModified = false;
         }
     }
@@ -119,10 +109,10 @@ public class ReloadAnimationSpeedHandler {
     }
 
     /**
-     * MAIN_TRACKのアニメーションランナーに速度倍率を設定する。
-     * ランナーが遷移中の場合、遷移先のランナーにも設定する。
+     * 現在のステートマシンが更新対象にしている全トラックへ速度倍率を設定する。
+     * 新しい銃パックではリロード/ボルトが固定の MAIN_TRACK 以外に割り当てられることがある。
      */
-    private static void applySpeedToMainTrack(LocalPlayer player, float speed) {
+    private static void applySpeedToActiveTracks(LocalPlayer player, float speed) {
         ItemStack mainHand = player.getMainHandItem();
         IGun iGun = IGun.getIGunOrNull(mainHand);
         if (iGun == null) return;
@@ -141,19 +131,15 @@ public class ReloadAnimationSpeedHandler {
         if (context == null) return;
 
         DiscreteTrackArray trackArray = context.getTrackArray();
-        if (trackArray.getTrackLineSize() <= STATIC_TRACK_LINE) return;
+        for (int trackPointer : trackArray) {
+            ObjectAnimationRunner runner = controller.getAnimation(trackPointer);
+            if (runner == null) continue;
+            setSpeedOnRunnerAndTransition(runner, speed);
+        }
+    }
 
-        List<Integer> staticTracks = trackArray.getByIndex(STATIC_TRACK_LINE);
-        if (staticTracks.size() <= MAIN_TRACK_INDEX) return;
-
-        int mainTrackPointer = staticTracks.get(MAIN_TRACK_INDEX);
-        ObjectAnimationRunner runner = controller.getAnimation(mainTrackPointer);
-        if (runner == null) return;
-
-        // ランナーに速度倍率を設定
+    private static void setSpeedOnRunnerAndTransition(ObjectAnimationRunner runner, float speed) {
         setSpeedOnRunner(runner, speed);
-
-        // 遷移先のランナーにも設定
         ObjectAnimationRunner transitionTo = runner.getTransitionTo();
         if (transitionTo != null) {
             setSpeedOnRunner(transitionTo, speed);

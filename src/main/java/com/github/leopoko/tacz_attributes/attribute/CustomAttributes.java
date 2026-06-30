@@ -190,6 +190,22 @@ public class CustomAttributes {
     public static final DeferredHolder<Attribute, Attribute> BURST_SPEED = ATTRIBUTES.register("burst_speed",
             () -> new RangedAttribute("attribute.tacz_attributes.burst_speed", 1.0, 0.01, 10.0));
 
+    // 近接ダメージ倍率
+    public static final DeferredHolder<Attribute, Attribute> MELEE_DAMAGE = ATTRIBUTES.register("melee_damage",
+            () -> new RangedAttribute("attribute.tacz_attributes.melee_damage", 1.0, 0.0, 1024.0));
+
+    // 近接射程倍率
+    public static final DeferredHolder<Attribute, Attribute> MELEE_RANGE = ATTRIBUTES.register("melee_range",
+            () -> new RangedAttribute("attribute.tacz_attributes.melee_range", 1.0, 0.01, 100.0));
+
+    // 有効射程倍率
+    public static final DeferredHolder<Attribute, Attribute> EFFECTIVE_RANGE = ATTRIBUTES.register("effective_range",
+            () -> new RangedAttribute("attribute.tacz_attributes.effective_range", 1.0, 0.01, 100.0));
+
+    // 防具貫通率倍率（1.0 = 変更なし、1.25 = 25%追加）
+    public static final DeferredHolder<Attribute, Attribute> ARMOR_PENETRATION = ATTRIBUTES.register("armor_penetration",
+            () -> new RangedAttribute("attribute.tacz_attributes.armor_penetration", 1.0, 0.01, 100.0));
+
     // 銃種別属性の一括登録
     static {
         GunType.registerAll(ATTRIBUTES);

@@ -67,6 +67,10 @@ public enum GunType {
     private DeferredHolder<Attribute, Attribute> burstBulletAmountAttribute;
     private DeferredHolder<Attribute, Attribute> drawSpeedAttribute;
     private DeferredHolder<Attribute, Attribute> burstSpeedAttribute;
+    private DeferredHolder<Attribute, Attribute> meleeDamageAttribute;
+    private DeferredHolder<Attribute, Attribute> meleeRangeAttribute;
+    private DeferredHolder<Attribute, Attribute> effectiveRangeAttribute;
+    private DeferredHolder<Attribute, Attribute> armorPenetrationAttribute;
 
     private static final Map<String, GunType> BY_TYPE_ID = new HashMap<>();
 
@@ -256,6 +260,22 @@ public enum GunType {
         return burstSpeedAttribute;
     }
 
+    public DeferredHolder<Attribute, Attribute> getMeleeDamageAttribute() {
+        return meleeDamageAttribute;
+    }
+
+    public DeferredHolder<Attribute, Attribute> getMeleeRangeAttribute() {
+        return meleeRangeAttribute;
+    }
+
+    public DeferredHolder<Attribute, Attribute> getEffectiveRangeAttribute() {
+        return effectiveRangeAttribute;
+    }
+
+    public DeferredHolder<Attribute, Attribute> getArmorPenetrationAttribute() {
+        return armorPenetrationAttribute;
+    }
+
     /**
      * TaCZ の銃種文字列（CommonGunIndex.getType() の戻り値）から GunType を取得する。
      * 不明な銃種の場合は null を返す。
@@ -316,6 +336,10 @@ public enum GunType {
             type.burstBulletAmountAttribute = registerBulletAmount(registry, id + "_burst_bullet_amount");
             type.drawSpeedAttribute = registerSpeedMultiplier(registry, id + "_draw_speed");
             type.burstSpeedAttribute = registerSpeedMultiplier(registry, id + "_burst_speed");
+            type.meleeDamageAttribute = registerDamage(registry, id + "_melee_damage");
+            type.meleeRangeAttribute = registerGenericPositiveMultiplier(registry, id + "_melee_range");
+            type.effectiveRangeAttribute = registerGenericPositiveMultiplier(registry, id + "_effective_range");
+            type.armorPenetrationAttribute = registerGenericPositiveMultiplier(registry, id + "_armor_penetration");
         }
     }
 
@@ -342,6 +366,11 @@ public enum GunType {
     private static DeferredHolder<Attribute, Attribute> registerGenericMultiplier(DeferredRegister<Attribute> registry, String name) {
         return registry.register(name,
                 () -> new RangedAttribute("attribute.tacz_attributes." + name, 1.0, 0.0, 100.0));
+    }
+
+    private static DeferredHolder<Attribute, Attribute> registerGenericPositiveMultiplier(DeferredRegister<Attribute> registry, String name) {
+        return registry.register(name,
+                () -> new RangedAttribute("attribute.tacz_attributes." + name, 1.0, 0.01, 100.0));
     }
 
     private static DeferredHolder<Attribute, Attribute> registerPierceMultiplier(DeferredRegister<Attribute> registry, String name) {

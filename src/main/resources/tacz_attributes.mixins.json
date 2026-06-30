@@ -14,7 +14,11 @@
     "ShootIntervalMixin",
     "LivingEntityAimMixin",
     "BulletAmountMixin",
-    "LivingEntityDrawGunMixin"
+    "LivingEntityDrawGunMixin",
+    "ModernKineticGunItemMixin",
+    "GunMeleeDataMixin",
+    "GunDefaultMeleeDataMixin",
+    "AttachmentMeleeDataMixin"
   ],
   "client": [
     "ObjectAnimationRunnerMixin",

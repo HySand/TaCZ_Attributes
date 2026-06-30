@@ -56,6 +56,10 @@ public class EntityAttributeSetup {
             event.add(EntityType.PLAYER, CustomAttributes.BURST_BULLET_AMOUNT);
             event.add(EntityType.PLAYER, CustomAttributes.DRAW_SPEED);
             event.add(EntityType.PLAYER, CustomAttributes.BURST_SPEED);
+            event.add(EntityType.PLAYER, CustomAttributes.MELEE_DAMAGE);
+            event.add(EntityType.PLAYER, CustomAttributes.MELEE_RANGE);
+            event.add(EntityType.PLAYER, CustomAttributes.EFFECTIVE_RANGE);
+            event.add(EntityType.PLAYER, CustomAttributes.ARMOR_PENETRATION);
 
             // 銃種別属性
             for (GunType gunType : GunType.values()) {
@@ -102,6 +106,10 @@ public class EntityAttributeSetup {
                 event.add(EntityType.PLAYER, gunType.getBurstBulletAmountAttribute());
                 event.add(EntityType.PLAYER, gunType.getDrawSpeedAttribute());
                 event.add(EntityType.PLAYER, gunType.getBurstSpeedAttribute());
+                event.add(EntityType.PLAYER, gunType.getMeleeDamageAttribute());
+                event.add(EntityType.PLAYER, gunType.getMeleeRangeAttribute());
+                event.add(EntityType.PLAYER, gunType.getEffectiveRangeAttribute());
+                event.add(EntityType.PLAYER, gunType.getArmorPenetrationAttribute());
             }
         }
     }

@@ -2,8 +2,10 @@ package com.github.leopoko.tacz_attributes.mixin;
 
 import com.github.leopoko.tacz_attributes.attribute.CustomAttributes;
 import com.github.leopoko.tacz_attributes.attribute.GunType;
+import com.github.leopoko.tacz_attributes.util.AttributeValueHelper;
 import com.github.leopoko.tacz_attributes.util.GunTypeResolver;
 import com.tacz.guns.entity.EntityKineticBullet;
+import com.tacz.guns.resource.pojo.data.gun.ExtraDamage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -20,6 +22,8 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.LinkedList;
+
 /**
  * EntityKineticBullet に対するMixin。
  * <p>
@@ -34,6 +38,15 @@ public abstract class EntityKineticBulletMixin extends Projectile {
 
     @Shadow(remap = false)
     private ResourceLocation gunId;
+
+    @Shadow(remap = false)
+    private float armorIgnore;
+
+    @Shadow(remap = false)
+    private LinkedList<ExtraDamage.DistanceDamagePair> damageAmount;
+
+    @Shadow(remap = false)
+    private float distanceAmount;
 
     protected EntityKineticBulletMixin(EntityType<? extends Projectile> type, Level level) {
         super(type, level);
@@ -105,6 +118,39 @@ public abstract class EntityKineticBulletMixin extends Projectile {
         int oldPierce = this.pierce;
         this.pierce = Math.max(1, (int) (this.pierce * combined));
 
+    }
+
+    @Inject(
+            method = "<init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/resources/ResourceLocation;ZLcom/tacz/guns/resource/pojo/data/gun/GunData;Lcom/tacz/guns/resource/pojo/data/gun/BulletData;)V",
+            at = @At("TAIL"),
+            remap = false
+    )
+    private void tacz_attributes$modifyArmorPenetrationAndEffectiveRange(CallbackInfo ci) {
+        Entity owner = this.getOwner();
+        if (!(owner instanceof LivingEntity shooter)) return;
+
+        GunType gunType = GunTypeResolver.resolve(this.gunId);
+
+        double armorPenetration = AttributeValueHelper.getMultiplier(
+                shooter, CustomAttributes.ARMOR_PENETRATION, gunType, GunType::getArmorPenetrationAttribute);
+        if (armorPenetration != 1.0) {
+            this.armorIgnore = (float) Math.max(0.0, Math.min(1.0, this.armorIgnore + armorPenetration - 1.0));
+        }
+
+        double effectiveRange = AttributeValueHelper.getMultiplier(
+                shooter, CustomAttributes.EFFECTIVE_RANGE, gunType, GunType::getEffectiveRangeAttribute);
+        if (effectiveRange == 1.0) return;
+
+        this.distanceAmount = (float) (this.distanceAmount * effectiveRange);
+        if (this.damageAmount == null || this.damageAmount.isEmpty()) return;
+
+        LinkedList<ExtraDamage.DistanceDamagePair> modified = new LinkedList<>();
+        for (ExtraDamage.DistanceDamagePair pair : this.damageAmount) {
+            modified.add(new ExtraDamage.DistanceDamagePair(
+                    (float) (pair.getDistance() * effectiveRange),
+                    pair.getDamage()));
+        }
+        this.damageAmount = modified;
     }
 
     @Unique
